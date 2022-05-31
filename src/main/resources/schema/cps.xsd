@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema
+	targetNamespace="http://github.com/MohammadMD1383/cps"
+	xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified">
+	<xs:complexType name="directoryType">
+		<xs:sequence>
+			<xs:element name="directory" type="directoryType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="file" type="fileType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		
+		<xs:attribute name="name" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<!--————————————————————————————————————————-->
+	
+	<xs:complexType name="fileType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="name" type="xs:string" use="required"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!--————————————————————————————————————————-->
+	
+	<xs:complexType name="scriptType">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attribute name="run-at" use="required">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="beginning"/>
+							<xs:enumeration value="end"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:attribute>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	
+	<!--————————————————————————————————————————-->
+	
+	<xs:element name="starter">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="structure">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="directory" type="directoryType" minOccurs="0" maxOccurs="unbounded"/>
+							<xs:element name="file" type="fileType" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				
+				<xs:element name="scripts" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="script" type="scriptType" minOccurs="0" maxOccurs="unbounded"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

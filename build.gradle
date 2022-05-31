@@ -1,0 +1,66 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+	
+	dependencies {
+		classpath 'com.guardsquare:proguard-gradle:7.2.1'
+	}
+}
+
+plugins {
+	id 'org.jetbrains.kotlin.jvm' version '1.6.21'
+	id 'org.jetbrains.intellij' version '1.6.0'
+	id 'java'
+}
+
+group 'ir.mmd.intellijDev'
+version '1.0.0'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3'
+}
+
+intellij {
+	version = "2022.1"
+	type = "IC"
+}
+
+sourceSets {
+	main.java.srcDirs += "src/main/kotlin"
+}
+
+compileJava {
+	sourceCompatibility = JavaVersion.VERSION_1_8
+	targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+compileKotlin {
+	kotlinOptions.jvmTarget = JavaVersion.VERSION_1_8
+}
+
+patchPluginXml {
+	version = project.version
+	sinceBuild.set("181")
+	untilBuild.set("")
+}
+
+signPlugin {
+	certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))
+	privateKey.set(System.getenv("PRIVATE_KEY"))
+	password.set(System.getenv("PRIVATE_KEY_PASSWORD"))
+}
+
+publishPlugin {
+	token.set(System.getenv("PUBLISH_TOKEN"))
+}
+
+task minify(type: ProGuardTask, dependsOn: buildPlugin) {
+	outputs.upToDateWhen { false }
+}
