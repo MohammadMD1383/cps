@@ -1,29 +1,33 @@
 package ir.mmd.intellijdev.cps.compl
 
-import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.lookup.LookupElement
-import com.intellij.patterns.PlatformPatterns
-import com.intellij.psi.xml.XmlTokenType
-import com.intellij.util.ProcessingContext
+import com.intellij.codeInsight.completion.CompletionContributor
+import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.patterns.XmlPatterns.*
+import ir.mmd.intellijdev.cps.compl.provider.CpsAttributeCompletionProvider
+import ir.mmd.intellijdev.cps.compl.provider.CpsAttributeValueCompletionProvider
+import ir.mmd.intellijdev.cps.compl.provider.CpsTagNameCompletionProvider
 
 class CpsXmlCompletionContributor : CompletionContributor() {
 	init {
 		extend(
 			CompletionType.BASIC,
-			PlatformPatterns.psiElement(XmlTokenType.XML_START_TAG_START),
-			object : CompletionProvider<CompletionParameters>() {
-				override fun addCompletions(
-					parameters: CompletionParameters,
-					context: ProcessingContext,
-					result: CompletionResultSet
-				) {
-					result.addElement(object : LookupElement() {
-						override fun getLookupString(): String {
-							return "starter"
-						}
-					})
-				}
-			}
+			psiElement().inside(xmlTag()).afterLeaf("<"),
+			CpsTagNameCompletionProvider()
+		)
+		
+		extend(
+			CompletionType.BASIC,
+			psiElement().inside(xmlAttribute()).andNot(
+				psiElement().inside(xmlAttributeValue())
+			),
+			CpsAttributeCompletionProvider()
+		)
+		
+		extend(
+			CompletionType.BASIC,
+			psiElement().inside(xmlAttributeValue()),
+			CpsAttributeValueCompletionProvider()
 		)
 	}
 }

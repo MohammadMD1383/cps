@@ -19,7 +19,7 @@ class CustomModuleWizardStep : ModuleWizardStep() {
 	
 	private fun getStarterTemplates(): Map<String, Starter> {
 		val starter = XmlMapper().readValue(
-			File("/Files/projects/plugin/intellij/Custom Project Starter/src/main/resources/schema/test.xml"),
+			File("/Files/projects/plugin/intellij/Custom Project Starter/src/main/resources/schema/sample.xml"),
 			Starter::class.java
 		)
 		return mapOf("Default" to starter)

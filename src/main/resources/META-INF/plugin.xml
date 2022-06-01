@@ -21,6 +21,7 @@
 			id="ir.mmd.intellijdev.cps.builder.CustomModuleType"/>
 		
 		<completion.contributor
+			language="XML"
 			implementationClass="ir.mmd.intellijdev.cps.compl.CpsXmlCompletionContributor"
 			id="ir.mmd.intellijdev.cps.compl.CpsXmlCompletionContributor"/>
 	</extensions>

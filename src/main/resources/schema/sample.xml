@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<starter xmlns="http://github.com/MohammadMD1383/cps">
+	<structure>
+		<directory name="src">
+			<directory name="components">
+				<file name="App.js"/>
+				<file name="index.js"/>
+				<file name="Counter.js"/>
+			</directory>
+			
+			<directory name="main">
+				<file name="Main.js"/>
+			</directory>
+		</directory>
+		
+		<directory name="tmp"/>
+		
+		<file name="package.lock"/>
+		<file name="package.json">
+			{
+				"name": "Hello World",
+				"version": 1
+			}
+		</file>
+	</structure>
+	
+	<scripts>
+		<script run-at="beginning">npm install</script>
+		<script run-at="end">rm -rf *</script>
+	</scripts>
+</starter>
