@@ -9,4 +9,15 @@ public class Script {
 	
 	@JacksonXmlText
 	public String content;
+	
+	// public Script(
+	// 	@JacksonXmlProperty(isAttribute = true, localName = "run-at")
+	// 	RunAt runAt,
+	//
+	// 	@JacksonXmlText
+	// 	String content
+	// ) {
+	// 	this.runAt = runAt;
+	// 	this.content = content;
+	// }
 }

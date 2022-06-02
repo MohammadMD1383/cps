@@ -13,4 +13,17 @@ public class Structure {
 	@JacksonXmlElementWrapper(useWrapping = false)
 	@JacksonXmlProperty(localName = "file")
 	public List<File> files;
+	
+	// public Structure(
+	// 	@JacksonXmlElementWrapper(useWrapping = false)
+	// 	@JacksonXmlProperty(localName = "directory")
+	// 	List<Directory> directories,
+	//
+	// 	@JacksonXmlElementWrapper(useWrapping = false)
+	// 	@JacksonXmlProperty(localName = "file")
+	// 	List<File> files
+	// ) {
+	// 	this.directories = directories;
+	// 	this.files = files;
+	// }
 }

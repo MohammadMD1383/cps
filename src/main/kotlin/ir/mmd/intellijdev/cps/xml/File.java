@@ -9,4 +9,22 @@ public class File {
 	
 	@JacksonXmlText
 	public String content;
+	
+	public File() {
+	}
+	
+	public File(
+		// @JacksonXmlProperty(isAttribute = true, localName = "name")
+		String name,
+		
+		// @JacksonXmlText
+		String content
+	) {
+		this.name = name;
+		this.content = content;
+	}
+	
+	public File withParentPath(String path) {
+		return new File(path + "/" + name, content);
+	}
 }

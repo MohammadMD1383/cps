@@ -1,85 +1,91 @@
 package ir.mmd.intellijdev.cps.builder
 
-import com.intellij.grazie.utils.dropPrefix
 import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.roots.ModifiableRootModel
-import ir.mmd.intellijdev.cps.builder.model.Path
-import ir.mmd.intellijdev.cps.builder.model.PathType
 import ir.mmd.intellijdev.cps.builder.wizard.CustomModuleWizardStep
-import ir.mmd.intellijdev.cps.xml.Directory
-import ir.mmd.intellijdev.cps.xml.Structure
-import java.io.File
-import java.nio.file.Paths
+import ir.mmd.intellijdev.cps.util.invoke
+import ir.mmd.intellijdev.cps.xml.*
+import java.io.File as JFile
 
 class CustomModuleBuilder : ModuleBuilder() {
 	private val moduleWizardStep by lazy { CustomModuleWizardStep() }
 	
-	private fun Directory.resolvePaths(parentPath: String? = null): List<Path> {
-		val paths = mutableListOf<Path>()
-		val thisPath = this@resolvePaths.name
-		val parent = parentPath?.let { "$it/" } ?: ""
+	private fun Structure.traverse(consumer: (Any) -> Unit) {
+		val path = contentEntryPath!!
 		
 		directories?.forEach {
-			paths.add(Path("$parent$thisPath/${it.name}", PathType.Directory))
-			paths.addAll(it.resolvePaths("$parent$thisPath"))
+			it.traverse(path, consumer)
 		}
 		
 		files?.forEach {
-			paths.add(Path("$parent$thisPath/${it.name}", PathType.File))
+			consumer(it.withParentPath(path))
 		}
-		
-		return paths
 	}
 	
-	private fun Structure.resolvePaths(): List<Path> {
-		val paths = mutableListOf<Path>()
+	private fun Directory.traverse(parentPath: String, consumer: (Any) -> Unit) {
+		consumer(withParentPath("$parentPath/"))
+		val path = "$parentPath/$name"
 		
 		directories?.forEach {
-			paths.add(Path(it.name, PathType.Directory))
-			paths.addAll(it.resolvePaths())
+			consumer(it.withParentPath(path))
+			it.traverse(path, consumer)
 		}
 		
 		files?.forEach {
-			paths.add(Path(it.name, PathType.File))
+			consumer(it.withParentPath(path))
 		}
-		
-		return paths
 	}
 	
 	override fun setupRootModel(rootModel: ModifiableRootModel) {
-		val starter = moduleWizardStep.starter
-		val paths = starter.structure.resolvePaths()
+		doAddContentEntry(rootModel)
 		
-		println("-------------raw paths----------------")
-		paths.forEach { println(it.path) }
-		
-		println("-----------reduced paths--------------")
-		val reducedPaths = paths.filterIndexed { i, path ->
-			for (j in i + 1 until paths.size)
-				if (paths[j].path.startsWith(path.path)) return@filterIndexed false
-			return@filterIndexed true
-		}.onEach { println(it.path) }
-		
-		val basePath = doAddContentEntry(rootModel)!!.url.dropPrefix("file:")
-		
-		println("-------------final paths--------------")
-		val finalPaths = reducedPaths.map {
-			Path(Paths.get(basePath, it.path).toString(), it.type)
-		}.onEach(::println)
-		
-		finalPaths.forEach {
-			File(it.path).apply {
-				if (it.type == PathType.File) {
-					parentFile.mkdirs()
-					createNewFile()
-				} else mkdirs()
+		ProgressManager.getInstance().run(object : Task.Backgroundable(rootModel.project, "Initializing custom project...", false) {
+			override fun run(indicator: ProgressIndicator) {
+				indicator.isIndeterminate = true
 				
+				val starter = moduleWizardStep.starter
+				val endScripts = mutableListOf<Script>()
+				val directory = JFile(contentEntryPath!!)
 				
+				indicator.text = "Executing beginning scrips..."
+				starter.scripts?.forEach {
+					when (it.runAt ?: RunAt.Beginning) {
+						RunAt.Beginning -> it.content.let { content ->
+							indicator.text2 = content
+							content.invoke(directory).waitFor()
+						}
+						
+						RunAt.End -> endScripts += it
+					}
+				}
+				indicator.text2 = ""
+				
+				indicator.text = "Creating project structure..."
+				starter.structure?.traverse {
+					when (it) {
+						is Directory -> JFile(it.name).mkdirs()
+						is File -> JFile(it.name).apply {
+							createNewFile()
+							it.content?.apply { writeBytes(trimIndent().encodeToByteArray()) }
+						}
+					}
+				}
+				
+				indicator.text = "Executing end scripts..."
+				endScripts.forEach {
+					it.content.let { content ->
+						indicator.text2 = content
+						content.invoke(directory).waitFor()
+					}
+				}
 			}
-		}
+		})
 	}
 	
 	override fun getCustomOptionsStep(context: WizardContext?, parentDisposable: Disposable?) = moduleWizardStep

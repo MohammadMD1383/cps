@@ -14,4 +14,12 @@ public class Starter {
 	@JacksonXmlElementWrapper
 	@JacksonXmlProperty(localName = "scripts")
 	public List<Script> scripts;
+	
+	// public Starter(
+	// 	Structure structure,
+	// 	List<Script> scripts
+	// ) {
+	// 	this.structure = structure;
+	// 	this.scripts = scripts;
+	// }
 }
